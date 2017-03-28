@@ -20,12 +20,12 @@
             })
             .state('categories', {
                 url: '/cat-list',
-                templateUrl: 'src/templates/categorieslist.template.html',
+                templateUrl: 'src/templates/main-categorieslist.template.html',
                 controller: 'CategoriesController as catList'
             })
             .state('items', {
                 url: '/items-list/{catShortName}',
-                templateUrl: 'src/templates/itemslist.template.html',
+                templateUrl: 'src/templates/main-itemslist.template.html',
                 controller: 'ItemsController as itemsList',
                 resolve: {
                     items: ['$stateParams', 'MenuDataService',
