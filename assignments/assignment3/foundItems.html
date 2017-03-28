@@ -1,0 +1,8 @@
+ <table>
+  <tr ng-repeat="item in menu.items">
+    <td>{{item.name}}</td>
+    <td>{{item.description}}</td>
+    <td> <button class="btn btn-primary" ng-click="menu.onRemove({index:$index});">Don't want this one</button></td>
+  </tr>
+</table>
+    

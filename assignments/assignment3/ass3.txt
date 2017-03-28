@@ -1,0 +1,121 @@
+(function(){
+    'use strict';
+
+    angular.module('NarrowItDownApp', [])
+    .controller('NarrowItDownController', NarrowItDownController)
+    .service('MenuSearchService', MenuSearchService)
+    .directive('foundItems', FoundItemsDirective)
+
+    .constant('ApiBasePath', "https://davids-restaurant.herokuapp.com");
+
+    function FoundItemsDirective() {
+        var ddo = {
+            templateUrl: 'menu.html',
+            scope: {
+                title:'@',
+                items: '<',
+                onRemove: '&'
+            },
+            controller: FoundItemsDirectiveController,
+            controllerAs: 'list',
+            bindToController: true
+        };
+
+        return ddo;
+    }
+
+    function FoundItemsDirectiveController() {
+        var list = this;
+
+    }
+
+    NarrowItDownController.$inject = ['MenuSearchService'];
+    function NarrowItDownController(service) {
+        var controller = this;
+
+        controller.searchItem = '';
+        controller.items = [];
+
+        controller.nothingFound = false;
+
+        controller.findItems = function () {
+            service.getMatchedMenuItems(controller.searchItem).then(function (foundItems) {
+                controller.items = foundItems;
+                controller.nothingFound = (foundItems == 0);
+            });
+        }
+
+        controller.removeItem = function (itemIndex) {
+            console.log(itemIndex);
+            controller.items.splice(itemIndex, 1);
+        };
+
+    }
+
+
+    MenuSearchService.$inject =['$http','ApiBasePath'];
+    function MenuSearchService($http, ApiBasePath) {
+        var service = this;
+
+        service.getMatchedMenuItems = function (searchTerm) {
+            return $http({
+                method: "GET",
+                url: (ApiBasePath + "/menu_items.json")
+            }).then(function (result) {
+                var foundItems = [];
+                var srcLower = searchTerm.toLowerCase();
+
+                if (srcLower.length > 0) {
+                    //find items matching
+                    for (var i = 0; i < result.data.menu_items.length; i++) {
+                        var item = result.data.menu_items[i];
+                        if (item.name.toLowerCase().indexOf(srcLower) !== -1 || item.description.toLowerCase().indexOf(srcLower) !== -1) {
+                            foundItems.push(item);
+                        }
+                    }
+                }
+
+                //return processed items
+                return foundItems;
+            });
+        };
+
+
+    }
+
+})();
+
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Narrow Down Your Menu Choice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles/bootstrap.min.css">
+    <link rel="stylesheet" href="styles/styles.css">
+      <script src="angular.min.js"></script>
+      <script src="app.js"></script>
+  </head>
+<body ng-app='NarrowItDownApp'>
+   <div class="container" ng-controller='NarrowItDownController as controller'>
+    <h1>Narrow Down Your Chinese Menu Choice</h1>
+
+    <div class="form-group">
+      <input type="text" placeholder="search term" class="form-control" ng-model="controller.searchItem">
+    </div>
+    <div class="form-group narrow-button" ng-click="controller.findItems();">
+      <button class="btn btn-primary">Narrow It Down For Me!</button>
+    </div>
+
+    <div class="error" ng-if="controller.nothingFound"><br /><br />No Items found!</div>
+
+    <!-- found-items should be implemented as a component -->
+    <found-items ng-if="controller.items.length >0"
+                 items="controller.items" 
+                 title="menu"
+                 on-remove="controller.removeItem(index)"></found-items>
+
+  </div>
+
+</body>
+</html>
